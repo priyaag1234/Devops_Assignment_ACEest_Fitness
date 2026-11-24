@@ -1,0 +1,85 @@
+# ════════════════════════════════════════════════════
+#  ACEest Fitness – Docker Compose
+#  Services: app, sonarqube, jenkins
+# ════════════════════════════════════════════════════
+
+version: "3.9"
+
+services:
+
+  # ── Application ─────────────────────────────────
+  aceest-app:
+    build:
+      context: .
+      target: runtime
+    image: aceest-fitness:latest
+    container_name: aceest_app
+    volumes:
+      - aceest_data:/data
+    environment:
+      - DB_PATH=/data/aceest_fitness.db
+    restart: unless-stopped
+    networks:
+      - aceest_net
+
+  # ── SonarQube (Code Quality) ─────────────────────
+  sonarqube:
+    image: sonarqube:10.5-community
+    container_name: sonarqube
+    ports:
+      - "9000:9000"
+    environment:
+      SONAR_JDBC_URL: jdbc:postgresql://sonar-db:5432/sonarqube
+      SONAR_JDBC_USERNAME: sonar
+      SONAR_JDBC_PASSWORD: sonar
+    volumes:
+      - sonarqube_data:/opt/sonarqube/data
+      - sonarqube_extensions:/opt/sonarqube/extensions
+      - sonarqube_logs:/opt/sonarqube/logs
+    depends_on:
+      - sonar-db
+    networks:
+      - aceest_net
+
+  sonar-db:
+    image: postgres:15-alpine
+    container_name: sonar_db
+    environment:
+      POSTGRES_DB: sonarqube
+      POSTGRES_USER: sonar
+      POSTGRES_PASSWORD: sonar
+    volumes:
+      - sonar_postgres:/var/lib/postgresql/data
+    networks:
+      - aceest_net
+
+  # ── Jenkins (CI/CD) ──────────────────────────────
+  jenkins:
+    image: jenkins/jenkins:lts-jdk17
+    container_name: jenkins
+    privileged: true
+    user: root
+    ports:
+      - "8080:8080"
+      - "50000:50000"
+    volumes:
+      - jenkins_home:/var/jenkins_home
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      - JAVA_OPTS=-Djenkins.install.runSetupWizard=false
+    networks:
+      - aceest_net
+
+# ── Named volumes ────────────────────────────────────
+volumes:
+  aceest_data:
+  sonarqube_data:
+  sonarqube_extensions:
+  sonarqube_logs:
+  sonar_postgres:
+  jenkins_home:
+
+# ── Network ──────────────────────────────────────────
+networks:
+  aceest_net:
+    driver: bridge
