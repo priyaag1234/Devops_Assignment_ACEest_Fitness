@@ -1,0 +1,80 @@
+# ════════════════════════════════════════════════════
+#  Kubernetes – Deployment  (Rolling Update strategy)
+# ════════════════════════════════════════════════════
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: aceest-deployment
+  namespace: aceest
+  labels:
+    app: aceest
+    version: "3.2.4"
+spec:
+  replicas: 2                       # 2 replicas → zero-downtime rolling update
+  selector:
+    matchLabels:
+      app: aceest
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1             # At most 1 pod down during update
+      maxSurge: 1                   # At most 1 extra pod during update
+  template:
+    metadata:
+      labels:
+        app: aceest
+        version: "IMAGE_TAG"        # Replaced by Jenkins: sed -i
+    spec:
+      # ── Security Context ────────────────────────
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsGroup: 1000
+
+      containers:
+        - name: aceest-app
+          image: DOCKER_HUB_USER/aceest-fitness:IMAGE_TAG   # Replaced by Jenkins
+          imagePullPolicy: Always
+
+          # ── Environment ───────────────────────
+          env:
+            - name: DB_PATH
+              value: /data/aceest_fitness.db
+
+          # ── Resource limits ───────────────────
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "250m"
+              memory: "256Mi"
+
+          # ── Health probes ─────────────────────
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 5000
+            initialDelaySeconds: 15
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 3
+
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 5000
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 5
+
+          # ── Volume mounts ─────────────────────
+          volumeMounts:
+            - name: aceest-data
+              mountPath: /data
+
+      # ── Volumes ─────────────────────────────────
+      volumes:
+        - name: aceest-data
+          persistentVolumeClaim:
+            claimName: aceest-pvc

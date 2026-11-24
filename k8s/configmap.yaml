@@ -1,0 +1,13 @@
+# ════════════════════════════════════════════════════
+#  Kubernetes – ConfigMap  (app configuration)
+# ════════════════════════════════════════════════════
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: aceest-config
+  namespace: aceest
+data:
+  APP_VERSION: "3.2.4"
+  APP_NAME: "ACEest Fitness"
+  DB_PATH: "/data/aceest_fitness.db"
+  LOG_LEVEL: "INFO"

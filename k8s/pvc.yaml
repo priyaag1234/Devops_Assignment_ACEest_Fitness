@@ -1,0 +1,15 @@
+# ════════════════════════════════════════════════════
+#  Kubernetes – PersistentVolumeClaim  (SQLite data)
+# ════════════════════════════════════════════════════
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: aceest-pvc
+  namespace: aceest
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+  storageClassName: standard    # Minikube default; adjust for cloud provider

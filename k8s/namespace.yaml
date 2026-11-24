@@ -1,0 +1,9 @@
+# ════════════════════════════════════════════════════
+#  Kubernetes – Namespace
+# ════════════════════════════════════════════════════
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: aceest
+  labels:
+    app: aceest-fitness

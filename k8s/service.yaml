@@ -1,0 +1,19 @@
+# ════════════════════════════════════════════════════
+#  Kubernetes – Service
+# ════════════════════════════════════════════════════
+apiVersion: v1
+kind: Service
+metadata:
+  name: aceest-service
+  namespace: aceest
+  labels:
+    app: aceest
+spec:
+  selector:
+    app: aceest
+  ports:
+    - name: http
+      protocol: TCP
+      port: 80
+      targetPort: 5000
+  type: NodePort          # NodePort for Minikube; change to LoadBalancer for cloud
